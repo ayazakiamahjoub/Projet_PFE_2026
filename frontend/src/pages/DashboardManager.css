@@ -1,0 +1,192 @@
+/* Styles supplémentaires pour le dashboard Manager */
+
+.box-full {
+  grid-column: span 2;
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #FF6B35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  background: #E63946;
+  transform: translateY(-2px);
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-card {
+  padding: 20px;
+  background: #F4F6F8;
+  border: 1px solid #E8ECEF;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.project-card:hover {
+  background: white;
+  border-color: #D1D8DD;
+  box-shadow: 0 4px 12px rgba(26, 32, 44, 0.06);
+}
+
+.project-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.project-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1A202C;
+  margin: 0;
+}
+
+.project-status {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border-radius: 100px;
+  font-weight: 600;
+}
+
+.project-progress {
+  margin-bottom: 16px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: #6B7785;
+  font-weight: 500;
+}
+
+.progress-value {
+  font-size: 12px;
+  color: #FF6B35;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #E8ECEF;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B35, #FF8C42);
+  border-radius: 100px;
+  transition: width 0.3s ease;
+}
+
+.project-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-meta {
+  display: flex;
+  gap: 16px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6B7785;
+}
+
+.meta-item svg {
+  color: #9BA5B0;
+}
+
+.btn-view {
+  padding: 6px 16px;
+  background: white;
+  border: 1px solid #E8ECEF;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A202C;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view:hover {
+  border-color: #FF6B35;
+  color: #FF6B35;
+}
+/* ===== AVATAR IMAGE DANS LE HEADER ===== */
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #FF8C42, #FF6B35);
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  overflow: hidden; /* Important pour que l'image ne déborde pas */
+  position: relative;
+}
+
+/* Image avatar */
+.profile-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Couvre tout l'espace sans déformation */
+  border-radius: 50%;
+}
+
+/* Animation au survol */
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Si pas d'avatar, afficher les initiales */
+.profile-avatar span {
+  font-weight: 700;
+  font-size: 18px;
+  user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .box-full {
+    grid-column: span 1;
+  }
+}

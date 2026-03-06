@@ -406,6 +406,43 @@
   font-size: 14px;
   font-weight: 600;
 }
+/* ===== AVATAR IMAGE DANS LE HEADER ===== */
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #FF8C42, #FF6B35);
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  overflow: hidden; /* Important pour que l'image ne déborde pas */
+  position: relative;
+}
+
+/* Image avatar */
+.profile-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Couvre tout l'espace sans déformation */
+  border-radius: 50%;
+}
+
+/* Animation au survol */
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Si pas d'avatar, afficher les initiales */
+.profile-avatar span {
+  font-weight: 700;
+  font-size: 18px;
+  user-select: none;
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {

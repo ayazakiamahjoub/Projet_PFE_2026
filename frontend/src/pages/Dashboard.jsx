@@ -65,7 +65,15 @@ const Dashboard = () => {
             {/* Profil utilisateur */}
             <div className="profile">
               <div className="profile-avatar">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                {user?.avatarUrl ? (
+                  <img 
+                    src={`http://localhost:5000${user.avatarUrl}`} 
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="avatar-img"
+                  />
+                ) : (
+                  <span>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</span>
+                )}
               </div>
               <div className="profile-details">
                 <span className="profile-name">{user?.firstName} {user?.lastName}</span>
@@ -163,24 +171,25 @@ const Dashboard = () => {
               </div>
               <div className="box-content">
                 <div className="actions">
-                  <button className="action">
-                    <div className="action-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <span>Nouveau projet</span>
-                  </button>
+                  <button className="action" onClick={() => navigate('/profile')}>
+        <div className="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
+            <circle cx="12" cy="7" r="4" strokeWidth="2"/>
+          </svg>
+        </div>
+        <span>Mon profil</span>
+      </button>
 
-                  <button className="action">
-                    <div className="action-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" 
-                              strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <span>Ajouter une tâche</span>
-                  </button>
+      <button className="action">
+        <div className="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <span>Nouvelle tâche</span>
+      </button>
+
 
                   <button className="action">
                     <div className="action-icon">

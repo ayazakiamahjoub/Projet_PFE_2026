@@ -1,78 +1,74 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
-
+const dotenv = require('dotenv');
+const path = require('path'); // ← AJOUTER CETTE LIGNE
 const sequelize = require('./config/database');
-const authRoutes = require('./routes/auth.routes');
+
+// Charger les variables d'environnement
+dotenv.config();
 
 const app = express();
 
-// ========== MIDDLEWARES ==========
-
-// CORS
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
-}));
-
-// Parsing JSON
+// Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== ROUTES ==========
+// Servir les fichiers statiques (images de profil)
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// Import des routes
+const authRoutes = require('./routes/auth.routes');
+const profileRoutes = require('./routes/profile.routes');
+
+// Enregistrement des routes
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Route de test
-app.get('/api', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API PioneerTech - Version 1.0',
-    timestamp: new Date().toISOString()
-  });
+app.get('/', (req, res) => {
+  res.json({ message: 'API Pioneer Tech - Backend en cours d\'exécution' });
 });
 
-// Routes d'authentification
-app.use('/api/auth', authRoutes);
-
-// Route 404
+// Gestion des routes non trouvées (404)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route non trouvée'
+    message: 'Route non trouvée',
+    requestedPath: req.path,
+    method: req.method
   });
 });
 
-// Gestion globale des erreurs
-app.use((err, req, res, next) => {
-  console.error('❌ Erreur:', err.stack);
-  
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Erreur serveur interne',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
-// ========== DÉMARRAGE SERVEUR ==========
-
+// Connexion à la base de données et démarrage du serveur
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  try {
-    // Synchroniser la base de données
-    await sequelize.sync({ alter: true });
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('✅ Connexion PostgreSQL réussie');
+    return sequelize.sync({ alter: false });
+  })
+  .then(() => {
     console.log('✅ Base de données synchronisée');
-
-    // Démarrer le serveur
     app.listen(PORT, () => {
-      console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
-      console.log(`📍 URL: http://localhost:${PORT}`);
-      console.log(`🌍 Environnement: ${process.env.NODE_ENV}\n`);
+      console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+      console.log(`\n📍 Routes disponibles :`);
+      console.log(`   Auth:`);
+      console.log(`     - POST   /api/auth/register`);
+      console.log(`     - POST   /api/auth/login`);
+      console.log(`     - GET    /api/auth/profile`);
+      console.log(`     - POST   /api/auth/logout`);
+      console.log(`     - GET    /api/auth/verify`);
+      console.log(`   Profile:`);
+      console.log(`     - GET    /api/profile`);
+      console.log(`     - PUT    /api/profile`);
+      console.log(`     - PUT    /api/profile/password`);
+      console.log(`     - POST   /api/profile/avatar`);
+      console.log(`     - DELETE /api/profile/avatar`);
+      console.log(`     - GET    /api/profile/stats\n`);
     });
-
-  } catch (error) {
-    console.error('❌ Erreur de démarrage:', error);
-    process.exit(1);
-  }
-};
-
-startServer();
+  })
+  .catch((error) => {
+    console.error('❌ Erreur de connexion PostgreSQL:', error);
+  });

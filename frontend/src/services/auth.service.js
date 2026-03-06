@@ -2,26 +2,77 @@ import api from './api';
 
 const authService = {
   /**
-   * Connexion
+   * Inscription d'un nouvel utilisateur
+   */
+  register: async (userData) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur de connexion au serveur' 
+      };
+    }
+  },
+
+  /**
+   * Vérifier l'email avec le token
+   */
+  verifyEmail: async (token) => {
+    try {
+      const response = await api.get(`/auth/verify-email/${token}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur lors de la vérification' 
+      };
+    }
+  },
+
+  /**
+   * Renvoyer l'email de vérification
+   */
+  resendVerification: async (email) => {
+    try {
+      const response = await api.post('/auth/resend-verification', { email });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur lors de l\'envoi de l\'email' 
+      };
+    }
+  },
+
+  /**
+   * Connexion utilisateur
    */
   login: async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Erreur de connexion' };
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur de connexion au serveur' 
+      };
     }
   },
 
   /**
-   * Obtenir le profil
+   * Obtenir le profil utilisateur
    */
   getProfile: async () => {
     try {
       const response = await api.get('/auth/profile');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Erreur lors de la récupération du profil' };
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur lors de la récupération du profil' 
+      };
     }
   },
 
@@ -33,7 +84,10 @@ const authService = {
       const response = await api.post('/auth/logout');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Erreur de déconnexion' };
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Erreur lors de la déconnexion' 
+      };
     }
   },
 
@@ -45,7 +99,10 @@ const authService = {
       const response = await api.get('/auth/verify');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Token invalide' };
+      throw error.response?.data || { 
+        success: false, 
+        message: 'Token invalide' 
+      };
     }
   }
 };

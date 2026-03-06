@@ -2,18 +2,26 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { authenticate } = require('../middleware/auth.middleware');
+const { validateRegister, validateLogin } = require('../middleware/validation.middleware');
+
+/**
+ * @route   POST /api/auth/register
+ * @desc    Inscription d'un nouvel utilisateur (sans email de vérification)
+ * @access  Public
+ */
+router.post('/register', validateRegister, authController.register);
 
 /**
  * @route   POST /api/auth/login
- * @desc    Connexion admin
+ * @desc    Connexion utilisateur
  * @access  Public
  */
-router.post('/login', authController.login);
+router.post('/login', validateLogin, authController.login);
 
 /**
  * @route   GET /api/auth/profile
  * @desc    Obtenir le profil de l'utilisateur connecté
- * @access  Private (Admin only)
+ * @access  Private
  */
 router.get('/profile', authenticate, authController.getProfile);
 

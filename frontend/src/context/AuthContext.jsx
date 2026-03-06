@@ -1,7 +1,15 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import authService from '../services/auth.service';
 
 const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -9,34 +17,83 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Charger l'utilisateur au démarrage
+  // Charger l'utilisateur au montage
   useEffect(() => {
     const loadUser = async () => {
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+      try {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
 
-      if (savedToken && savedUser) {
-        try {
-          // Vérifier si le token est toujours valide
-          await authService.verifyToken();
-          
-          setToken(savedToken);
-          setUser(JSON.parse(savedUser));
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
           setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Token invalide:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
-      }
 
-      setLoading(false);
+          // Vérifier que le token est toujours valide
+          try {
+            await authService.verifyToken();
+          } catch (error) {
+            console.error('Token invalide, déconnexion...');
+            logout();
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'utilisateur:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadUser();
   }, []);
 
-  // Fonction de connexion
+  /**
+ * Inscription (avec connexion automatique)
+ */
+const register = async (userData) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      const { token, user } = data.data;
+
+      // Sauvegarder dans le localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Mettre à jour le state
+      setToken(token);
+      setUser(user);
+      setIsAuthenticated(true);
+
+      return { 
+        success: true,
+        user: user
+      };
+    } else {
+      return { 
+        success: false, 
+        message: data.message || 'Erreur lors de l\'inscription' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.message || 'Erreur lors de l\'inscription' 
+    };
+  }
+};
+  /**
+   * Connexion
+   */
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
@@ -44,74 +101,123 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         const { token, user } = response.data;
 
-        // Sauvegarder dans l'état
+        // Sauvegarder dans le localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // Mettre à jour le state
         setToken(token);
         setUser(user);
         setIsAuthenticated(true);
 
-        // Sauvegarder dans localStorage
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-
-        return { success: true };
+        return { success: true, user };
       } else {
-        return { success: false, message: response.message };
+        return { 
+          success: false, 
+          message: response.message || 'Erreur de connexion',
+          needsVerification: response.needsVerification
+        };
       }
     } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Erreur de connexion'
+      return { 
+        success: false, 
+        message: error.message || 'Erreur de connexion' 
       };
     }
   };
 
-  // Fonction de déconnexion
+  /**
+   * Déconnexion
+   */
   const logout = async () => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Erreur de déconnexion:', error);
+      console.error('Erreur lors de la déconnexion:', error);
     } finally {
-      // Nettoyer l'état
-      setUser(null);
-      setToken(null);
-      setIsAuthenticated(false);
-
       // Nettoyer le localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+
+      // Réinitialiser le state
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
-  // Vérifier si l'utilisateur est admin
+  /**
+   * Obtenir le dashboard URL selon le rôle
+   */
+  const getDashboardUrl = () => {
+    if (!user) return '/login';
+    
+    switch (user.role) {
+      case 'admin':
+        return '/admin/dashboard';
+      case 'manager':
+        return '/manager/dashboard';
+      case 'member':
+        return '/member/dashboard';
+      default:
+        return '/dashboard';
+    }
+  };
+
+  /**
+   * Vérifier si l'utilisateur est admin
+   */
   const isAdmin = () => {
     return user?.role === 'admin';
+  };
+
+  /**
+   * Vérifier si l'utilisateur est manager
+   */
+  const isManager = () => {
+    return user?.role === 'manager';
+  };
+
+  /**
+   * Vérifier si l'utilisateur est member
+   */
+  const isMember = () => {
+    return user?.role === 'member';
+  };
+
+  /**
+   * Vérifier si l'utilisateur a un rôle spécifique
+   */
+  const hasRole = (role) => {
+    return user?.role === role;
+  };
+
+  /**
+   * Vérifier si l'utilisateur a l'un des rôles spécifiés
+   */
+  const hasAnyRole = (roles) => {
+    return roles.includes(user?.role);
   };
 
   const value = {
     user,
     token,
-    isAuthenticated,
     loading,
+    isAuthenticated,
+    register,
     login,
     logout,
-    isAdmin
+    getDashboardUrl,
+    isAdmin,
+    isManager,
+    isMember,
+    hasRole,
+    hasAnyRole
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
-};
-
-// Hook personnalisé pour utiliser le context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth doit être utilisé dans AuthProvider');
-  }
-
-  return context;
 };

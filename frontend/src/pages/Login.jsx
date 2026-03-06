@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Alert from '../components/common/Alert';
 import './Login.css';
 
-// Import du logo
-import logoImage from '../assets/images/pioneer-logo.png'; 
-
+import logoImage from '../assets/images/pioneer-logo.png';
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { login, isAuthenticated, getDashboardUrl } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: '',
+    email: location.state?.email || '', // ← Pré-remplir l'email depuis l'inscription
     password: ''
   });
 
@@ -24,9 +23,21 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      const dashboardUrl = getDashboardUrl();
+      navigate(dashboardUrl);
     }
-  }, [isAuthenticated, navigate]);
+
+    // ⬇️ Afficher un message de succès si redirection depuis l'inscription
+    if (location.state?.registrationSuccess) {
+      setAlert({
+        type: 'success',
+        message: '✅ Inscription réussie ! Connectez-vous avec vos identifiants.'
+      });
+
+      // Nettoyer le state après affichage
+      window.history.replaceState({}, document.title);
+    }
+  }, [isAuthenticated, navigate, getDashboardUrl, location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +94,8 @@ const Login = () => {
         });
 
         setTimeout(() => {
-          navigate('/dashboard');
+          const dashboardUrl = getDashboardUrl();
+          navigate(dashboardUrl);
         }, 1000);
       } else {
         setAlert({
@@ -94,7 +106,7 @@ const Login = () => {
     } catch (error) {
       setAlert({
         type: 'error',
-        message: error.message || 'Erreur de connexion. Veuillez réessayer.'
+        message: 'Erreur de connexion au serveur. Veuillez réessayer.'
       });
     } finally {
       setLoading(false);
@@ -111,16 +123,17 @@ const Login = () => {
       </div>
 
       <div className="login-container">
-  <div className="login-box">
-    {/* Logo et titre */}
-    <div className="login-header">
-      <div className="logo-container">
-        {/* GARDEZ SEULEMENT L'IMAGE */}
-        <img src={logoImage} alt="Pioneer Tech" className="logo-image" />
-      </div>
-      <h2>Espace Administrateur</h2>
-      <p className="subtitle">Connectez-vous pour gérer vos projets</p>
-    </div>
+        <div className="login-box">
+          {/* Logo et titre */}
+          <div className="login-header">
+            <div className="logo-container">
+              {/* GARDEZ SEULEMENT L'IMAGE */}
+             <img src={logoImage} alt="Pioneer Tech" className="logo-image" />
+            </div>
+            <h2>Connexion</h2>
+            <p className="subtitle">Connectez-vous pour gérer vos projets</p>
+          </div>
+
           {/* Alerte */}
           {alert && (
             <Alert
@@ -138,7 +151,7 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="admin@Pioneertech.com"
+              placeholder="admin@pioneertech.com"
               error={errors.email}
               required
               autoFocus
@@ -176,7 +189,7 @@ const Login = () => {
           {/* Footer */}
           <div className="login-footer">
             <div className="divider">
-              <span>Compte de test</span>
+              <span>Compte de test admin</span>
             </div>
             <div className="test-credentials">
               <div className="credential-item">
@@ -187,6 +200,16 @@ const Login = () => {
                 <span className="label">Mot de passe :</span>
                 <span className="value">Admin123!</span>
               </div>
+            </div>
+
+            {/* Lien vers inscription */}
+            <div className="register-link-section">
+              <p className="register-text">
+                Pas encore de compte ?{' '}
+                <Link to="/register" className="register-link">
+                  S'inscrire
+                </Link>
+              </p>
             </div>
           </div>
 

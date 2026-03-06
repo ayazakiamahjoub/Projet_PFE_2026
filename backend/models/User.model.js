@@ -17,9 +17,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: false,
     unique: true,
-    validate: {
-      isEmail: true
-    }
+    validate: { isEmail: true }
   },
   password: {
     type: DataTypes.STRING(255),
@@ -37,21 +35,8 @@ const User = sequelize.define('User', {
   },
   phone: {
     type: DataTypes.STRING(20),
-    allowNull: true
-  },
-  avatarUrl: {
-    type: DataTypes.STRING(500),
     allowNull: true,
-    field: 'avatar_url'
-  },
-  jobTitle: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-    field: 'job_title'
-  },
-  department: {
-    type: DataTypes.STRING(100),
-    allowNull: true
+    field: 'phone'
   },
   role: {
     type: DataTypes.ENUM('admin', 'manager', 'member'),
@@ -68,34 +53,36 @@ const User = sequelize.define('User', {
     defaultValue: false,
     field: 'is_verified'
   },
-  lastLoginAt: {
+  verificationToken: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'verification_token'
+  },
+  verificationTokenExpires: {
     type: DataTypes.DATE,
     allowNull: true,
+    field: 'verification_token_expires'
+  },
+  lastLoginAt: {
+    type: DataTypes.DATE,
     field: 'last_login_at'
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    field: 'created_at'
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    field: 'updated_at'
+  avatarUrl: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    field: 'avatar_url'
   }
 }, {
   tableName: 'users',
   timestamps: true,
   underscored: true,
   hooks: {
-    // Hash le mot de passe avant de créer l'utilisateur
     beforeCreate: async (user) => {
       if (user.password) {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
     },
-    // Hash le mot de passe avant de mettre à jour
     beforeUpdate: async (user) => {
       if (user.changed('password')) {
         const salt = await bcrypt.genSalt(10);
@@ -105,15 +92,15 @@ const User = sequelize.define('User', {
   }
 });
 
-// Méthode pour comparer les mots de passe
 User.prototype.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Méthode pour obtenir les données publiques (sans le mot de passe)
 User.prototype.toJSON = function() {
   const values = { ...this.get() };
   delete values.password;
+  delete values.verificationToken;
+  delete values.verificationTokenExpires;
   return values;
 };
 

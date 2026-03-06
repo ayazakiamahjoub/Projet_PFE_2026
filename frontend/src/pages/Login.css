@@ -296,7 +296,29 @@
     font-size: var(--font-size-md);
   }
 }
+/* Lien vers inscription */
+.register-link-section {
+  margin-top: 24px;
+  text-align: center;
+}
 
+.register-text {
+  color: #6B7785;
+  font-size: 14px;
+  margin: 0;
+}
+
+.register-link {
+  color: #FF6B35;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.register-link:hover {
+  color: #E63946;
+  text-decoration: underline;
+}
 /* ===== ANIMATIONS ===== */
 .login-box {
   animation: slideUp 0.5s ease-out;
