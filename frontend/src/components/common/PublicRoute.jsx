@@ -1,16 +1,17 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, getDashboardUrl } = useAuth();
+  const location = useLocation();
 
-  // Rediriger vers dashboard si déjà authentifié
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  // Si déjà connecté ET sur /login ou /register, rediriger vers le dashboard
+  if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/register')) {
+    const dashboardUrl = getDashboardUrl();
+    return <Navigate to={dashboardUrl} replace />;
   }
 
-  // Afficher le contenu si non authentifié
   return children;
 };
 

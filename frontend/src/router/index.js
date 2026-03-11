@@ -8,20 +8,22 @@ import PublicRoute from '../components/common/PublicRoute';
 import RoleBasedRoute from '../components/common/RoleBasedRoute';
 
 // Pages
+import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import DashboardManager from '../pages/DashboardManager';
 import DashboardMember from '../pages/DashboardMember';
-import Profile from '../pages/Profile'; // ← AJOUTER
+import Profile from '../pages/Profile';
+import UserManagement from '../pages/UserManagement';
 
 const AppRouter = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Route par défaut */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Route d'accueil */}
+          <Route path="/" element={<Home />} />
 
           {/* Routes publiques */}
           <Route
@@ -61,6 +63,14 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/admin/users"
+            element={
+              <PrivateRoute allowedRoles={['admin']}>
+                <UserManagement />
+              </PrivateRoute>
+            }
+          />
 
           <Route
             path="/manager/dashboard"
@@ -80,7 +90,7 @@ const AppRouter = () => {
             }
           />
 
-          {/* ⬇️ NOUVELLE ROUTE PROFILE ⬇️ */}
+          {/* Route Profile */}
           <Route
             path="/profile"
             element={
@@ -91,7 +101,7 @@ const AppRouter = () => {
           />
 
           {/* Route 404 */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

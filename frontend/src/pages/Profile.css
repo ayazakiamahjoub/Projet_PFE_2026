@@ -650,7 +650,39 @@
   width: 0 !important;
   height: 0 !important;
 }
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #F4F6F8;
+  border: 1px solid #E8ECEF;
+  border-radius: 10px;
+  color: #1A202C;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+}
 
+.btn-back:hover {
+  background: #FFFFFF;
+  border-color: #FF6B35;
+  color: #FF6B35;
+  transform: translateX(-4px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn-dashboard span {
+    display: none;
+  }
+
+  .btn-dashboard {
+    padding: 10px 14px;
+  }
+}
 /* ===== SUCCESS ANIMATION ===== */
 @keyframes successPulse {
   0%, 100% {

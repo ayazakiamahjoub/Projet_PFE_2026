@@ -7,7 +7,7 @@ import Alert from '../components/common/Alert';
 import './Profile.css';
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, getDashboardUrl } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -403,13 +403,18 @@ const Profile = () => {
       {/* Header */}
       <header className="header-clean">
         <div className="header-wrapper">
-          <div className="brand">
+          <div 
+            className="brand" 
+            onClick={() => navigate(getDashboardUrl())}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="brand-icon">PT</div>
             <div className="brand-text">
               <span className="brand-name">Pioneer Tech</span>
               <span className="brand-tagline">Mon Profil</span>
             </div>
           </div>
+    
 
           <div className="header-end">
             <div className="profile">
@@ -444,6 +449,12 @@ const Profile = () => {
       {/* Contenu */}
       <main className="content">
         <div className="content-wrapper">
+            <button className="btn-back" onClick={() => navigate(getDashboardUrl())}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+      Retour au tableau de bord
+    </button>
           <div className="profile-container">
             {/* Sidebar */}
             <div className="profile-sidebar">

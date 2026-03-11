@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './DashboardManager.css';
 
 const DashboardManager = () => {
-  const { user, logout } = useAuth();
+   const { user, logout, getDashboardUrl } = useAuth(); 
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -78,7 +78,11 @@ const DashboardManager = () => {
       {/* Header */}
       <header className="header-clean">
         <div className="header-wrapper">
-          <div className="brand">
+         <div 
+            className="brand" 
+            onClick={() => navigate(getDashboardUrl())}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="brand-icon">PT</div>
             <div className="brand-text">
               <span className="brand-name">Pioneer Tech</span>
