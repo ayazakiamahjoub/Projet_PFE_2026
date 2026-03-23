@@ -8,106 +8,144 @@ const Home = () => {
   const { isAuthenticated, getDashboardUrl } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
-  // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated) {
-      const dashboardUrl = getDashboardUrl();
-      navigate(dashboardUrl);
+      navigate(getDashboardUrl());
     }
   }, [isAuthenticated, navigate, getDashboardUrl]);
 
-  // Détecter le scroll pour changer le header
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const features = [
+  const services = [
     {
-      icon: '🎯',
-      title: 'Gestion de Projets',
-      description: 'Organisez et suivez vos projets avec une interface intuitive et puissante.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth="2"/>
+          <path d="M8 21h8M12 17v4" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
+      title: 'Développement Web',
+      description: 'Sites vitrine, e-commerce et plateformes sur mesure. Développés selon les derniers standards en design, sécurité et expérience utilisateur.'
     },
     {
-      icon: '👥',
-      title: 'Collaboration d\'Équipe',
-      description: 'Travaillez ensemble efficacement avec des outils de collaboration en temps réel.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeWidth="2" strokeLinejoin="round"/>
+        </svg>
+      ),
+      title: 'Maintenance & Gestion',
+      description: 'Monitoring technique, mises à jour, sauvegardes automatiques, optimisation des performances et support technique continu.'
     },
     {
-      icon: '📊',
-      title: 'Tableaux de Bord',
-      description: 'Visualisez vos performances avec des tableaux de bord personnalisés et des rapports détaillés.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+          <path d="M12 8v4l3 3" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
+      title: 'Design Graphique',
+      description: 'Création de logos, chartes graphiques, supports de communication, visuels réseaux sociaux et présentations professionnelles.'
     },
     {
-      icon: '⚡',
-      title: 'Performance Optimale',
-      description: 'Plateforme rapide et réactive pour une productivité maximale.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M22 4s-2.5 3-8 3-8-3-8-3v7c0 5.25 8 9 8 9s8-3.75 8-9V4z" strokeWidth="2" strokeLinejoin="round"/>
+        </svg>
+      ),
+      title: 'Réseaux Sociaux',
+      description: 'Stratégie de contenu, création graphique, planification éditoriale, community management et reporting analytique.'
     },
     {
-      icon: '🔒',
-      title: 'Sécurité Avancée',
-      description: 'Vos données sont protégées avec les dernières technologies de sécurité.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" strokeWidth="2"/>
+          <path d="M22 6l-10 7L2 6" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
+      title: 'E-mail Marketing',
+      description: 'Campagnes ciblées, marketing automation, newsletters professionnelles et gestion des bases de données clients.'
     },
     {
-      icon: '📱',
-      title: 'Multi-Plateformes',
-      description: 'Accédez à vos projets depuis n\'importe quel appareil, n\'importe où.'
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" strokeWidth="2"/>
+        </svg>
+      ),
+      title: 'Solutions Sur Mesure',
+      description: 'Plateformes personnalisées adaptées aux besoins réels de chaque client, avec un accompagnement stratégique et un support technique à long terme.'
     }
   ];
 
-  const testimonials = [
+  const whyUs = [
+    { title: 'Solutions personnalisées', desc: 'Adaptées aux besoins réels de chaque client' },
+    { title: 'Tarification claire', desc: 'Accessible pour les entreprises en démarrage' },
+    { title: 'Équipe compétente', desc: 'Jeune, réactive et passionnée par le digital' },
+    { title: 'Support stratégique', desc: 'Accompagnement et support technique à long terme' },
+    { title: 'Maîtrise technologique', desc: 'Dernières technologies web et tendances digitales' },
+  ];
+
+  const targets = [
     {
-      name: 'Sophie Martin',
-      role: 'Chef de Projet',
-      company: 'TechCorp',
-      avatar: 'SM',
-      text: 'Pioneer Tech a transformé notre façon de gérer les projets. Un outil indispensable !'
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeWidth="2" strokeLinejoin="round"/>
+        </svg>
+      ),
+      title: 'Startups & Nouveaux Projets',
+      desc: 'Accompagnement pour une présence numérique solide et évolutive dès le départ.'
     },
     {
-      name: 'Jean Dupont',
-      role: 'Directeur Technique',
-      company: 'InnovateLab',
-      avatar: 'JD',
-      text: 'Interface intuitive et fonctionnalités puissantes. Exactement ce dont nous avions besoin.'
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="2" y="7" width="20" height="14" rx="2" strokeWidth="2"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" strokeWidth="2"/>
+        </svg>
+      ),
+      title: 'PME',
+      desc: 'Professionnalisation de la communication digitale et renforcement de la présence en ligne.'
     },
     {
-      name: 'Marie Lambert',
-      role: 'Product Manager',
-      company: 'StartupX',
-      avatar: 'ML',
-      text: 'La collaboration d\'équipe n\'a jamais été aussi simple. Bravo à l\'équipe Pioneer Tech !'
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
+          <circle cx="12" cy="7" r="4" strokeWidth="2"/>
+        </svg>
+      ),
+      title: 'Indépendants & Experts',
+      desc: 'Renforcement de l\'image de marque et de la crédibilité en ligne pour les professionnels.'
     }
   ];
 
   const stats = [
-    { value: '10K+', label: 'Utilisateurs Actifs' },
-    { value: '50K+', label: 'Projets Créés' },
-    { value: '99.9%', label: 'Uptime' },
-    { value: '4.9/5', label: 'Satisfaction Client' }
+    { value: '100+', label: 'Clients Satisfaits' },
+    { value: '5+', label: "Années d'Expertise" },
+    { value: '200+', label: 'Projets Livrés' },
+    { value: '100%', label: 'Sur Mesure' },
   ];
 
   return (
     <div className="home-page">
-      {/* Header / Navbar */}
+
+      {/* ── HEADER ── */}
       <header className={`home-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="container">
           <div className="header-content">
             <div className="logo-section">
               <div className="logo-icon">PT</div>
-              <span className="logo-text">
+              <div className="logo-text">
                 <span className="pioneer">PIONEER</span>
-                <span className="tech">TECH</span>
-              </span>
+                <span className="tech">ONLINE TECH SERVICES</span>
+              </div>
             </div>
 
             <nav className="nav-menu">
-              <a href="#features" className="nav-link">Fonctionnalités</a>
+              <a href="#services" className="nav-link">Services</a>
               <a href="#about" className="nav-link">À propos</a>
-              <a href="#testimonials" className="nav-link">Témoignages</a>
+              <a href="#clients" className="nav-link">Clients</a>
               <a href="#contact" className="nav-link">Contact</a>
             </nav>
 
@@ -115,279 +153,286 @@ const Home = () => {
               <button className="btn-secondary" onClick={() => navigate('/login')}>
                 Connexion
               </button>
-              <button className="btn-primary" onClick={() => navigate('/register')}>
-                Commencer
+              <button className="btn-primary" onClick={() => navigate('/login')}>
+                Accéder à la plateforme
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* ── HERO ── */}
       <section className="hero-section">
-        <div className="hero-background">
-          <div className="hero-shape shape-1"></div>
-          <div className="hero-shape shape-2"></div>
-          <div className="hero-shape shape-3"></div>
+        <div className="hero-bg">
+          <div className="hero-orb orb-1"></div>
+          <div className="hero-orb orb-2"></div>
+          <div className="hero-grid"></div>
         </div>
 
         <div className="container">
           <div className="hero-content">
             <div className="hero-text">
+              <div className="hero-badge">
+                <span className="badge-dot"></span>
+                Entreprise digitale · Tunisie
+              </div>
               <h1 className="hero-title">
-                Gérez vos projets avec
-                <span className="gradient-text"> simplicité et efficacité</span>
+                Votre transformation
+                <span className="hero-accent"> digitale</span>
+                <br />commence ici
               </h1>
               <p className="hero-subtitle">
-                Pioneer Tech est la plateforme de gestion de projets moderne qui transforme 
-                votre façon de travailler. Collaborez, organisez et réussissez ensemble.
+                Pioneer Online Tech Services accompagne les startups, PME et professionnels
+                dans leur transformation digitale avec des solutions numériques sur mesure,
+                innovantes et adaptées à leurs objectifs.
               </p>
               <div className="hero-buttons">
-                <button className="btn-hero-primary" onClick={() => navigate('/register')}>
-                  <span>Essayer gratuitement</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <button className="btn-hero-primary" onClick={() => navigate('/login')}>
+                  Accéder à la plateforme
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </button>
-                <button className="btn-hero-secondary" onClick={() => navigate('/login')}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
-                  </svg>
-                  <span>Voir la démo</span>
-                </button>
+                <a href="#services" className="btn-hero-secondary">
+                  Découvrir nos services
+                </a>
               </div>
 
-              {/* Stats */}
               <div className="hero-stats">
-                {stats.map((stat, index) => (
-                  <div key={index} className="stat-item">
-                    <div className="stat-value">{stat.value}</div>
-                    <div className="stat-label">{stat.label}</div>
+                {stats.map((s, i) => (
+                  <div key={i} className="stat-item">
+                    <div className="stat-value">{s.value}</div>
+                    <div className="stat-label">{s.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="hero-image">
-              <div className="dashboard-mockup">
-                <div className="mockup-header">
-                  <div className="mockup-dot"></div>
-                  <div className="mockup-dot"></div>
-                  <div className="mockup-dot"></div>
+            <div className="hero-visual">
+              <div className="visual-card card-main">
+                <div className="vc-header">
+                  <div className="vc-dot"></div>
+                  <div className="vc-dot"></div>
+                  <div className="vc-dot"></div>
+                  <span>Pioneer Tech — Dashboard</span>
                 </div>
-                <div className="mockup-content">
-                  <div className="mockup-sidebar"></div>
-                  <div className="mockup-main">
-                    <div className="mockup-card"></div>
-                    <div className="mockup-card"></div>
-                    <div className="mockup-card"></div>
+                <div className="vc-body">
+                  <div className="vc-sidebar">
+                    <div className="vc-nav-item active"></div>
+                    <div className="vc-nav-item"></div>
+                    <div className="vc-nav-item"></div>
+                    <div className="vc-nav-item"></div>
+                  </div>
+                  <div className="vc-main">
+                    <div className="vc-stats-row">
+                      <div className="vc-stat orange"></div>
+                      <div className="vc-stat gray"></div>
+                      <div className="vc-stat gray"></div>
+                    </div>
+                    <div className="vc-cards">
+                      <div className="vc-card"></div>
+                      <div className="vc-card"></div>
+                      <div className="vc-card"></div>
+                      <div className="vc-card"></div>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div className="visual-badge badge-a">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5A623"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeWidth="2"/><polyline points="22 4 12 14.01 9 11.01" strokeWidth="2" strokeLinecap="round"/></svg>
+                Projet livré
+              </div>
+              <div className="visual-badge badge-b">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5A623"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="2"/><circle cx="9" cy="7" r="4" strokeWidth="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="2"/></svg>
+                Équipe active
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="features-section">
+      {/* ── SERVICES ── */}
+      <section id="services" className="services-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Fonctionnalités puissantes</h2>
+            <div className="section-tag">Nos expertises</div>
+            <h2 className="section-title">Des solutions digitales complètes</h2>
             <p className="section-subtitle">
-              Tout ce dont vous avez besoin pour gérer vos projets efficacement
+              De la conception à la livraison, Pioneer Tech couvre l'ensemble de vos besoins digitaux
             </p>
           </div>
 
-          <div className="features-grid">
-            {features.map((feature, index) => (
-              <div key={index} className="feature-card">
-                <div className="feature-icon">{feature.icon}</div>
-                <h3 className="feature-title">{feature.title}</h3>
-                <p className="feature-description">{feature.description}</p>
+          <div className="services-grid">
+            {services.map((s, i) => (
+              <div key={i} className="service-card">
+                <div className="service-icon">{s.icon}</div>
+                <h3 className="service-title">{s.title}</h3>
+                <p className="service-desc">{s.description}</p>
+                <div className="service-arrow">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* About Section */}
+      {/* ── ABOUT / WHY US ── */}
       <section id="about" className="about-section">
         <div className="container">
-          <div className="about-content">
-            <div className="about-image">
-              <div className="about-card card-1">
-                <div className="card-icon">📊</div>
-                <div className="card-text">
-                  <div className="card-title">Productivité +47%</div>
-                  <div className="card-subtitle">En moyenne</div>
-                </div>
-              </div>
-              <div className="about-card card-2">
-                <div className="card-icon">⚡</div>
-                <div className="card-text">
-                  <div className="card-title">Temps économisé</div>
-                  <div className="card-subtitle">15h par semaine</div>
-                </div>
-              </div>
-              <div className="about-card card-3">
-                <div className="card-icon">🎯</div>
-                <div className="card-text">
-                  <div className="card-title">Projets réussis</div>
-                  <div className="card-subtitle">+92% de succès</div>
-                </div>
-              </div>
+          <div className="about-grid">
+            <div className="about-left">
+              <div className="section-tag">Pourquoi nous choisir</div>
+              <h2 className="about-title">
+                Une équipe passionnée au service de votre
+                <span className="hero-accent"> succès digital</span>
+              </h2>
+              <p className="about-desc">
+                Pioneer Tech est une entreprise digitale basée en Tunisie, spécialisée dans
+                la conception et la mise en œuvre de solutions numériques sur mesure.
+                Notre mission : accompagner les marques dans leur transformation digitale
+                avec des services innovants, flexibles et adaptés à leurs objectifs.
+              </p>
+              <ul className="why-list">
+                {whyUs.map((w, i) => (
+                  <li key={i} className="why-item">
+                    <div className="why-check">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 6L9 17l-5-5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <strong>{w.title}</strong>
+                      <span> — {w.desc}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button className="btn-about" onClick={() => navigate('/login')}>
+                Accéder à la plateforme
+              </button>
             </div>
 
-            <div className="about-text">
-              <h2 className="about-title">
-                Pourquoi choisir <span className="gradient-text">Pioneer Tech</span> ?
-              </h2>
-              <p className="about-description">
-                Pioneer Tech a été conçu par des chefs de projet, pour des chefs de projet. 
-                Notre plateforme combine simplicité d'utilisation et fonctionnalités avancées 
-                pour vous permettre de vous concentrer sur l'essentiel : la réussite de vos projets.
-              </p>
-              <ul className="about-list">
-                <li>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#FF6B35" opacity="0.2"/>
-                    <path d="M9 12l2 2 4-4" stroke="#FF6B35" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Interface intuitive et moderne
-                </li>
-                <li>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#FF6B35" opacity="0.2"/>
-                    <path d="M9 12l2 2 4-4" stroke="#FF6B35" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Collaboration en temps réel
-                </li>
-                <li>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#FF6B35" opacity="0.2"/>
-                    <path d="M9 12l2 2 4-4" stroke="#FF6B35" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Support client réactif 24/7
-                </li>
-                <li>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#FF6B35" opacity="0.2"/>
-                    <path d="M9 12l2 2 4-4" stroke="#FF6B35" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Sécurité et confidentialité garanties
-                </li>
-              </ul>
-              <button className="btn-about" onClick={() => navigate('/register')}>
-                Commencer gratuitement
-              </button>
+            <div className="about-right">
+              <div className="advantages-grid">
+                {[
+                  { icon: '⚙', label: 'Maîtrise technologique' },
+                  { icon: '👥', label: 'Équipe compétente' },
+                  { icon: '✦', label: 'Solutions personnalisées' },
+                  { icon: '◈', label: 'Support stratégique' },
+                  { icon: '◉', label: 'Tarification claire' },
+                ].map((a, i) => (
+                  <div key={i} className={`adv-card adv-${i}`}>
+                    <div className="adv-icon">{a.icon}</div>
+                    <div className="adv-label">{a.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="testimonials-section">
+      {/* ── CLIENTS CIBLES ── */}
+      <section id="clients" className="clients-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Ce que disent nos utilisateurs</h2>
+            <div className="section-tag">Nos clients cibles</div>
+            <h2 className="section-title">Qui accompagnons-nous ?</h2>
             <p className="section-subtitle">
-              Rejoignez des milliers d'équipes qui font confiance à Pioneer Tech
+              Pioneer Tech s'adresse aux entreprises et professionnels qui souhaitent renforcer leur présence numérique
             </p>
           </div>
 
-          <div className="testimonials-grid">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="testimonial-card">
-                <div className="testimonial-header">
-                  <div className="testimonial-avatar">{testimonial.avatar}</div>
-                  <div className="testimonial-info">
-                    <div className="testimonial-name">{testimonial.name}</div>
-                    <div className="testimonial-role">{testimonial.role} • {testimonial.company}</div>
-                  </div>
-                </div>
-                <p className="testimonial-text">"{testimonial.text}"</p>
-                <div className="testimonial-stars">
-                  {'★★★★★'}
-                </div>
+          <div className="targets-grid">
+            {targets.map((t, i) => (
+              <div key={i} className="target-card">
+                <div className="target-icon">{t.icon}</div>
+                <h3 className="target-title">{t.title}</h3>
+                <p className="target-desc">{t.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ── CTA ── */}
       <section className="cta-section">
+        <div className="cta-bg">
+          <div className="cta-orb"></div>
+        </div>
         <div className="container">
           <div className="cta-content">
-            <h2 className="cta-title">Prêt à transformer votre gestion de projets ?</h2>
+            <h2 className="cta-title">
+              Prêt à démarrer votre projet digital ?
+            </h2>
             <p className="cta-subtitle">
-              Rejoignez Pioneer Tech aujourd'hui et découvrez une nouvelle façon de travailler
+              Rejoignez les entreprises qui font confiance à Pioneer Online Tech Services
+              pour leur transformation digitale
             </p>
             <div className="cta-buttons">
-              <button className="btn-cta-primary" onClick={() => navigate('/register')}>
-                Commencer gratuitement
+              <button className="btn-cta-primary" onClick={() => navigate('/login')}>
+                Accéder à la plateforme
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </button>
-              <button className="btn-cta-secondary" onClick={() => navigate('/login')}>
-                Se connecter
-              </button>
+              <a href="mailto:contact@pioneertech.tn" className="btn-cta-secondary">
+                Nous contacter
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── FOOTER ── */}
       <footer className="home-footer">
         <div className="container">
           <div className="footer-content">
             <div className="footer-brand">
               <div className="footer-logo">
                 <div className="logo-icon">PT</div>
-                <span className="logo-text">
+                <div className="logo-text">
                   <span className="pioneer">PIONEER</span>
-                  <span className="tech">TECH</span>
-                </span>
+                  <span className="tech">ONLINE TECH SERVICES</span>
+                </div>
               </div>
               <p className="footer-tagline">
-                La plateforme moderne de gestion de projets
+                Solutions numériques sur mesure pour startups, PME et professionnels.
+                Basés en Tunisie.
               </p>
             </div>
 
             <div className="footer-links">
               <div className="footer-column">
-                <h4>Produit</h4>
-                <a href="#features">Fonctionnalités</a>
-                <a href="#pricing">Tarifs</a>
-                <a href="#demo">Démo</a>
+                <h4>Services</h4>
+                <a href="#services">Développement Web</a>
+                <a href="#services">Maintenance</a>
+                <a href="#services">Design Graphique</a>
+                <a href="#services">Réseaux Sociaux</a>
+                <a href="#services">E-mail Marketing</a>
               </div>
               <div className="footer-column">
                 <h4>Entreprise</h4>
                 <a href="#about">À propos</a>
-                <a href="#careers">Carrières</a>
+                <a href="#clients">Nos clients</a>
                 <a href="#contact">Contact</a>
               </div>
               <div className="footer-column">
-                <h4>Ressources</h4>
-                <a href="#blog">Blog</a>
-                <a href="#docs">Documentation</a>
-                <a href="#support">Support</a>
-              </div>
-              <div className="footer-column">
-                <h4>Légal</h4>
-                <a href="#privacy">Confidentialité</a>
-                <a href="#terms">Conditions</a>
-                <a href="#security">Sécurité</a>
+                <h4>Plateforme</h4>
+                <a href="/login">Connexion</a>
+                <a href="#contact">Demander un accès</a>
               </div>
             </div>
           </div>
 
           <div className="footer-bottom">
-            <p>© 2026 Pioneer Tech. Tous droits réservés.</p>
+            <p>© 2026 Pioneer Online Tech Services. Tous droits réservés. · Tunisie</p>
             <div className="footer-social">
               <a href="#linkedin" aria-label="LinkedIn">in</a>
-              <a href="#twitter" aria-label="Twitter">𝕏</a>
-              <a href="#github" aria-label="GitHub">⚙</a>
+              <a href="#facebook" aria-label="Facebook">f</a>
             </div>
           </div>
         </div>

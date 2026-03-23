@@ -16,6 +16,10 @@ import DashboardManager from '../pages/DashboardManager';
 import DashboardMember from '../pages/DashboardMember';
 import Profile from '../pages/Profile';
 import UserManagement from '../pages/UserManagement';
+import CreateProject from '../pages/CreateProject';
+import EditProject from '../pages/EditProject';
+import ProjectDetail from '../pages/ProjectDetail';
+import AdminProjects from '../pages/AdminProjects';
 
 const AppRouter = () => {
   return (
@@ -71,12 +75,44 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
+          <Route 
+        path="/admin/projects" 
+        element={
+          <PrivateRoute allowedRoles={['admin']}>
+            <AdminProjects />
+          </PrivateRoute>
+        } 
+      />
 
           <Route
             path="/manager/dashboard"
             element={
               <PrivateRoute allowedRoles={['manager']}>
                 <DashboardManager />
+              </PrivateRoute>
+            }
+          />
+           <Route
+            path="/manager/projects/create"
+            element={
+              <PrivateRoute allowedRoles={['manager', 'admin']}>
+                <CreateProject />
+              </PrivateRoute>
+            }
+          />
+           <Route
+            path="/manager/projects/:id/edit"
+            element={
+              <PrivateRoute allowedRoles={['manager', 'admin']}>
+                <EditProject />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/projects/:id"
+            element={
+              <PrivateRoute allowedRoles={['manager', 'admin']}>
+                <ProjectDetail />
               </PrivateRoute>
             }
           />
