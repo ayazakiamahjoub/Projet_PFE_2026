@@ -20,6 +20,8 @@ import CreateProject from '../pages/CreateProject';
 import EditProject from '../pages/EditProject';
 import ProjectDetail from '../pages/ProjectDetail';
 import AdminProjects from '../pages/AdminProjects';
+import AdminTasks from '../pages/AdminTasks';
+
 
 const AppRouter = () => {
   return (
@@ -135,6 +137,9 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
+          // Dans le Router
+<Route path="/admin/tasks" element={<AdminTasks />} />
+
 
           {/* Route 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />

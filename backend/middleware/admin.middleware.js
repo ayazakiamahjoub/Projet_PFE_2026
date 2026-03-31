@@ -9,7 +9,16 @@ exports.isAdmin = (req, res, next) => {
       message: 'Non authentifié'
     });
   }
-
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux administrateurs'
+    });
+  }
+};
   // Vérifier le rôle
   if (req.user.role !== 'admin') {
     console.log('⚠️ Accès refusé - Non admin:', {

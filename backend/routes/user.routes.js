@@ -2,10 +2,19 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { authenticate } = require('../middleware/auth.middleware');
-const { isAdmin } = require('../middleware/admin.middleware');
+const { isAdmin, isAdminOrManager } = require('../middleware/admin.middleware');
 
-// Toutes les routes nécessitent l'authentification ET le rôle admin
+// Authentification requise pour toutes les routes
 router.use(authenticate);
+
+/**
+ * @route   GET /api/users/members
+ * @desc    Obtenir les membres assignables (accessible manager + admin)
+ * @access  Private (Manager + Admin)
+ */
+router.get('/members', isAdminOrManager, userController.getAssignableMembers);
+
+// Les routes suivantes nécessitent le rôle admin
 router.use(isAdmin);
 
 /**

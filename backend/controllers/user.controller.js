@@ -152,7 +152,7 @@ exports.createUser = async (req, res) => {
       isVerified: true // Admin crée des comptes déjà vérifiés
     });
 
-    console.log('✅ Utilisateur créé par admin:', {
+    console.log(' Utilisateur créé par admin:', {
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -393,6 +393,35 @@ exports.getUserStats = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erreur stats utilisateurs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * 👥 Obtenir les membres assignables à une tâche
+ * GET /api/users/members
+ * Accessible par manager ET admin
+ */
+exports.getAssignableMembers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      where: { isActive: true, role: 'member' },
+      attributes: ['id', 'firstName', 'lastName', 'email', 'role', 'avatarUrl'],
+      order: [['firstName', 'ASC'], ['lastName', 'ASC']]
+    });
+
+    console.log('✅ Membres assignables récupérés:', users.length);
+
+    res.status(200).json({
+      success: true,
+      data: { users }
+    });
+  } catch (error) {
+    console.error('❌ Erreur récupération membres:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',

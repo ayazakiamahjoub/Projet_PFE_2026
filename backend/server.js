@@ -19,12 +19,17 @@ const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const userRoutes = require('./routes/user.routes'); 
 const projectRoutes = require('./routes/project.routes');
+const taskRoutes = require('./routes/task.routes');
+const meetingRoutes = require('./routes/meeting.routes'); // ← IMPORTANT
 
 // Enregistrement des routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', userRoutes); 
 app.use('/api/projects', projectRoutes);
+app.use('/api', taskRoutes); 
+app.use('/api/meetings', meetingRoutes); // ← IMPORTANT
+
 // Route de test
 app.get('/', (req, res) => {
   res.json({ message: 'API Pioneer Tech - Backend en cours d\'exécution' });
@@ -47,7 +52,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log('✅ Connexion PostgreSQL réussie');
-    return sequelize.sync({ alter: true }); // ← IMPORTANT: alter:true pour créer la table projects
+    return sequelize.sync({ alter: true });
   })
   .then(() => {
     console.log('✅ Base de données synchronisée');
@@ -73,13 +78,18 @@ sequelize
       console.log(`     - PUT    /api/users/:id`);
       console.log(`     - DELETE /api/users/:id`);
       console.log(`     - PATCH  /api/users/:id/toggle-active\n`);
-      console.log(`   Projects (Admin + Manager):`); // ← AJOUTER
+      console.log(`   Projects (Admin + Manager):`);
       console.log(`     - GET    /api/projects`);
       console.log(`     - GET    /api/projects/stats`);
       console.log(`     - GET    /api/projects/:id`);
       console.log(`     - POST   /api/projects`);
       console.log(`     - PUT    /api/projects/:id`);
       console.log(`     - DELETE /api/projects/:id\n`);
+      console.log(`   Meetings (Manager):`); // ← AJOUTER
+      console.log(`     - GET    /api/meetings`);
+      console.log(`     - POST   /api/meetings`);
+      console.log(`     - PUT    /api/meetings/:id`);
+      console.log(`     - DELETE /api/meetings/:id\n`);
     });
   })
   .catch((error) => {
