@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
+import { ThemeProvider } from '../context/ThemeContext'; 
 
 // Composants de route
 import PrivateRoute from '../components/common/PrivateRoute';
@@ -27,6 +28,7 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
+       <ThemeProvider>
         <Routes>
           {/* Route d'accueil */}
           <Route path="/" element={<Home />} />
@@ -144,6 +146,7 @@ const AppRouter = () => {
           {/* Route 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

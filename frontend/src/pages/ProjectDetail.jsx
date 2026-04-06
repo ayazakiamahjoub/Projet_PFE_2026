@@ -397,34 +397,34 @@ const ProjectDetail = () => {
 
   const getStatusInfo = (status) => {
     const statusMap = {
-      'active': { label: 'En cours', class: 'status-active', icon: '🔄' },
-      'completed': { label: 'Terminé', class: 'status-completed', icon: '✅' },
-      'on_hold': { label: 'En pause', class: 'status-hold', icon: '⏸️' },
-      'draft': { label: 'Brouillon', class: 'status-draft', icon: '📝' },
-      'cancelled': { label: 'Annulé', class: 'status-cancelled', icon: '❌' }
+      'active':    { label: 'En cours',  class: 'status-active' },
+      'completed': { label: 'Terminé',   class: 'status-completed' },
+      'on_hold':   { label: 'En pause',  class: 'status-hold' },
+      'draft':     { label: 'Brouillon', class: 'status-draft' },
+      'cancelled': { label: 'Annulé',    class: 'status-cancelled' }
     };
-    return statusMap[status] || { label: status, class: 'status-default', icon: '❓' };
+    return statusMap[status] || { label: status, class: 'status-default' };
   };
 
   const getPriorityInfo = (priority) => {
     const priorityMap = {
-      'urgent': { label: 'Urgent', class: 'priority-urgent', icon: '🔥' },
-      'high': { label: 'Haute', class: 'priority-high', icon: '⚠️' },
-      'medium': { label: 'Moyenne', class: 'priority-medium', icon: '➡️' },
-      'low': { label: 'Basse', class: 'priority-low', icon: '⬇️' }
+      'urgent': { label: 'Urgent',  class: 'priority-urgent' },
+      'high':   { label: 'Haute',   class: 'priority-high' },
+      'medium': { label: 'Moyenne', class: 'priority-medium' },
+      'low':    { label: 'Basse',   class: 'priority-low' }
     };
-    return priorityMap[priority] || { label: priority, class: 'priority-default', icon: '❓' };
+    return priorityMap[priority] || { label: priority, class: 'priority-default' };
   };
 
   const getTaskStatusInfo = (status) => {
     const statusMap = {
-      'todo': { label: 'À faire', class: 'task-status-todo', icon: '📝' },
-      'in_progress': { label: 'En cours', class: 'task-status-progress', icon: '🔄' },
-      'review': { label: 'En révision', class: 'task-status-review', icon: '👀' },
-      'done': { label: 'Terminée', class: 'task-status-done', icon: '✅' },
-      'cancelled': { label: 'Annulée', class: 'task-status-cancelled', icon: '❌' }
+      'todo':        { label: 'À faire',     class: 'task-status-todo' },
+      'in_progress': { label: 'En cours',    class: 'task-status-progress' },
+      'review':      { label: 'En révision', class: 'task-status-review' },
+      'done':        { label: 'Terminée',    class: 'task-status-done' },
+      'cancelled':   { label: 'Annulée',     class: 'task-status-cancelled' }
     };
-    return statusMap[status] || { label: status, class: 'task-status-default', icon: '❓' };
+    return statusMap[status] || { label: status, class: 'task-status-default' };
   };
 
   if (loading) {
@@ -531,13 +531,9 @@ const ProjectDetail = () => {
             <div className="project-header-content">
               <h1 className="project-detail-title">{project.title}</h1>
               <div className="project-badges">
-                <span className={`badge ${statusInfo.class}`}>
-                  <span className="badge-icon">{statusInfo.icon}</span>
-                  {statusInfo.label}
+                <span className={`badge ${statusInfo.class}`}> {statusInfo.label}
                 </span>
-                <span className={`badge ${priorityInfo.class}`}>
-                  <span className="badge-icon">{priorityInfo.icon}</span>
-                  {priorityInfo.label}
+                <span className={`badge ${priorityInfo.class}`}> {priorityInfo.label}
                 </span>
               </div>
               <div className="project-detail-actions">
@@ -686,7 +682,7 @@ const ProjectDetail = () => {
 
             {tasks.length === 0 ? (
               <div className="empty-tasks">
-                <div className="empty-tasks-icon">📋</div>
+                
                 <h3>Aucune tâche</h3>
                 <p>Commencez par ajouter des tâches à ce projet</p>
                 {canManageTasks && (
@@ -712,13 +708,9 @@ const ProjectDetail = () => {
                       <div className="task-header">
                         <h4 className="task-title">{task.title}</h4>
                         <div className="task-badges">
-                          <span className={`task-badge ${taskStatus.class}`}>
-                            <span className="badge-icon">{taskStatus.icon}</span>
-                            {taskStatus.label}
+                          <span className={`task-badge ${taskStatus.class}`}> {taskStatus.label}
                           </span>
-                          <span className={`task-badge ${taskPriority.class}`}>
-                            <span className="badge-icon">{taskPriority.icon}</span>
-                            {taskPriority.label}
+                          <span className={`task-badge ${taskPriority.class}`}> {taskPriority.label}
                           </span>
                         </div>
                       </div>

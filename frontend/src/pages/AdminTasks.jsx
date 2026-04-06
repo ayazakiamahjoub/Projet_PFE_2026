@@ -1,253 +1,159 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import Alert from '../components/common/Alert';
+import ThemeToggle from '../components/common/ThemeToggle';
 import './AdminTasks.css';
 
 const AdminTasks = () => {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [stats, setStats] = useState({
+    total: 0, todo: 0, inProgress: 0, review: 0, pendingApproval: 0,
+    done: 0, cancelled: 0, unassigned: 0, overdue: 0, highPriority: 0
+  });
 
   const [tasks, setTasks] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    todo: 0,
-    inProgress: 0,
-    review: 0,
-    pendingApproval: 0,
-    done: 0,
-    cancelled: 0,
-    unassigned: 0,
-    overdue: 0,
-    highPriority: 0
-  });
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState(null);
-  
-  // Filtres
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [filterProject, setFilterProject] = useState('all');
-  const [filterAssignee, setFilterAssignee] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    status: '', priority: '', projectId: '', assignedTo: '', search: ''
+  });
 
-  // Listes pour les filtres
-  const [projects, setProjects] = useState([]);
-  const [users, setUsers] = useState([]);
+  useEffect(() => { fetchTasksData(); }, [filters]);
 
-  useEffect(() => {
-    fetchTasks();
-    fetchProjects();
-    fetchUsers();
-  }, [filterStatus, filterPriority, filterProject, filterAssignee, searchQuery]);
-
-  const fetchTasks = async () => {
+  const fetchTasksData = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('token');
+      const queryParams = new URLSearchParams();
       
-      let url = 'http://localhost:5000/api/tasks/all';
-      const params = new URLSearchParams();
+      // Ajouter les filtres
+      if (filters.status)    queryParams.append('status',    filters.status);
+      if (filters.priority)  queryParams.append('priority',  filters.priority);
+      if (filters.projectId) queryParams.append('projectId', filters.projectId);
+      if (filters.assignedTo)queryParams.append('assignedTo',filters.assignedTo);
+      if (filters.search)    queryParams.append('search',    filters.search);
       
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (filterPriority !== 'all') params.append('priority', filterPriority);
-      if (filterProject !== 'all') params.append('projectId', filterProject);
-      if (filterAssignee !== 'all') params.append('assignedTo', filterAssignee);
-      if (searchQuery.trim()) params.append('search', searchQuery.trim());
-      
-      if (params.toString()) url += `?${params.toString()}`;
+      // ⚠️ SOLUTION: Ajouter limit=10000 pour récupérer TOUTES les tâches
+      queryParams.append('limit', '10000');
 
-      const response = await fetch(url, {
+      const res  = await fetch(`http://localhost:5000/api/tasks/all?${queryParams.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      const data = await response.json();
+      const data = await res.json();
 
       if (data.success) {
-        setTasks(data.data.tasks);
-        setStats(data.data.stats);
-      } else {
-        setAlert({
-          type: 'error',
-          message: data.message || 'Erreur lors du chargement des tâches'
+        const allTasks = data.data.tasks || [];
+        setTasks(allTasks);
+        
+        // Calculer les stats à partir des tâches récupérées
+        setStats({
+          total:           allTasks.length,
+          todo:            allTasks.filter(t => t.status === 'todo').length,
+          inProgress:      allTasks.filter(t => t.status === 'in_progress').length,
+          review:          allTasks.filter(t => t.status === 'review').length,
+          pendingApproval: allTasks.filter(t => t.status === 'pending_approval').length,
+          done:            allTasks.filter(t => t.status === 'done').length,
+          cancelled:       allTasks.filter(t => t.status === 'cancelled').length,
+          unassigned:      allTasks.filter(t => !t.assignedTo).length,
+          overdue:         allTasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'done' && t.status !== 'cancelled').length,
+          highPriority:    allTasks.filter(t => t.priority === 'high').length
         });
       }
-    } catch (error) {
-      console.error('Erreur chargement tâches:', error);
-      setAlert({
-        type: 'error',
-        message: 'Erreur de connexion au serveur'
-      });
+    } catch (err) {
+      console.error('Erreur chargement tâches:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProjects = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/projects', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const handleFilterChange = (name, value) => setFilters(prev => ({ ...prev, [name]: value }));
+  const resetFilters    = () => setFilters({ status:'', priority:'', projectId:'', assignedTo:'', search:'' });
 
-      const data = await response.json();
-      if (data.success) {
-        setProjects(data.data.projects);
-      }
-    } catch (error) {
-      console.error('Erreur chargement projets:', error);
-    }
-  };
+  const getStatusBadgeClass = s => ({ 
+    todo:'status-todo', 
+    in_progress:'status-in-progress', 
+    review:'status-review', 
+    pending_approval:'status-pending', 
+    done:'status-done', 
+    cancelled:'status-cancelled' 
+  }[s] || 'status-default');
+  
+  const getStatusLabel      = s => ({ 
+    todo:'À faire', 
+    in_progress:'En cours', 
+    review:'En revue', 
+    pending_approval:'En attente', 
+    done:'Terminé', 
+    cancelled:'Annulé' 
+  }[s] || s);
+  
+  const getPriorityBadgeClass = p => ({ 
+    low:'priority-low', 
+    medium:'priority-medium', 
+    high:'priority-high' 
+  }[p] || 'priority-default');
+  
+  const getPriorityLabel    = p => ({ 
+    low:'Basse', 
+    medium:'Moyenne', 
+    high:'Haute' 
+  }[p] || p);
+  
+  const formatDate = d => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : 'Non défini';
 
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setUsers(data.data.users.filter(u => u.isActive));
-      }
-    } catch (error) {
-      console.error('Erreur chargement utilisateurs:', error);
-    }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
-  const handleResetFilters = () => {
-    setFilterStatus('all');
-    setFilterPriority('all');
-    setFilterProject('all');
-    setFilterAssignee('all');
-    setSearchQuery('');
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Pas de date';
-    
-    const date = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-    
-    const diffTime = date - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return `En retard de ${Math.abs(diffDays)} jour(s)`;
-    if (diffDays === 0) return "Aujourd'hui";
-    if (diffDays === 1) return "Demain";
-    if (diffDays <= 7) return `Dans ${diffDays} jours`;
-
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const getStatusInfo = (status) => {
-    const statusMap = {
-      'todo': { label: 'À faire', class: 'task-status-todo', icon: '📝' },
-      'in_progress': { label: 'En cours', class: 'task-status-progress', icon: '🔄' },
-      'review': { label: 'En révision', class: 'task-status-review', icon: '👀' },
-      'pending_approval': { label: 'En attente', class: 'task-status-pending', icon: '⏳' },
-      'done': { label: 'Terminée', class: 'task-status-done', icon: '✅' },
-      'cancelled': { label: 'Annulée', class: 'task-status-cancelled', icon: '❌' }
-    };
-    return statusMap[status] || { label: status, class: 'task-status-default', icon: '❓' };
-  };
-
-  const getPriorityInfo = (priority) => {
-    const priorityMap = {
-      'urgent': { label: 'Urgent', class: 'priority-urgent', icon: '🔥' },
-      'high': { label: 'Haute', class: 'priority-high', icon: '⚠️' },
-      'medium': { label: 'Moyenne', class: 'priority-medium', icon: '➡️' },
-      'low': { label: 'Basse', class: 'priority-low', icon: '⬇️' }
-    };
-    return priorityMap[priority] || { label: priority, class: 'priority-default', icon: '❓' };
-  };
-
-  const isOverdue = (dueDate, status) => {
-    if (!dueDate || status === 'done' || status === 'cancelled') return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    return due < today;
-  };
-
-  const hasActiveFilters = filterStatus !== 'all' || filterPriority !== 'all' || 
-                          filterProject !== 'all' || filterAssignee !== 'all' || 
-                          searchQuery.trim() !== '';
-
-  if (loading) {
-    return (
-      <div className="dashboard-clean">
-        <header className="header-clean">
-          <div className="header-wrapper">
-            <div className="brand">
-              <div className="brand-icon">PT</div>
-              <div className="brand-text">
-                <span className="brand-name">Pioneer Tech</span>
-                <span className="brand-tagline">Supervision des Tâches</span>
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="content">
-          <div className="content-wrapper">
-            <div className="loading-container">
-              <LoadingSpinner />
-              <p>Chargement des tâches...</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="dashboard-clean">
-      {/* Header */}
+  if (loading) return (
+    <div className="admin-tasks-page">
       <header className="header-clean">
         <div className="header-wrapper">
-          <div className="brand" onClick={() => navigate('/admin/dashboard')} style={{ cursor: 'pointer' }}>
+          <div className="brand" onClick={() => navigate('/admin/dashboard')} style={{ cursor:'pointer' }}>
             <div className="brand-icon">PT</div>
             <div className="brand-text">
               <span className="brand-name">Pioneer Tech</span>
-              <span className="brand-tagline">Supervision des Tâches</span>
+              <span className="brand-tagline">Supervision des tâches</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main className="content">
+        <div className="content-wrapper">
+          <div className="loading-container"><LoadingSpinner /><p>Chargement des tâches...</p></div>
+        </div>
+      </main>
+    </div>
+  );
+
+  return (
+    <div className="admin-tasks-page">
+      {/* ── Header ── */}
+      <header className="header-clean">
+        <div className="header-wrapper">
+          <div className="brand" onClick={() => navigate('/admin/dashboard')} style={{ cursor:'pointer' }}>
+            <div className="brand-icon">PT</div>
+            <div className="brand-text">
+              <span className="brand-name">Pioneer Tech</span>
+              <span className="brand-tagline">Supervision des tâches</span>
             </div>
           </div>
 
           <div className="header-end">
+            <ThemeToggle />
             <div className="profile">
               <div className="profile-avatar">
-                {user?.avatarUrl ? (
-                  <img 
-                    src={`http://localhost:5000${user.avatarUrl}`} 
-                    alt="Avatar" 
-                    className="avatar-img"
-                  />
-                ) : (
-                  <span>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</span>
-                )}
+                {user?.avatarUrl
+                  ? <img src={`http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="avatar-img" />
+                  : <span>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</span>}
               </div>
               <div className="profile-details">
                 <span className="profile-name">{user?.firstName} {user?.lastName}</span>
-                <span className="profile-role">Administrateur</span>
+                <span className="profile-role">{user?.role}</span>
               </div>
             </div>
-
             <button className="btn-logout" onClick={handleLogout}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5m0 0l-5-5m5 5H9" 
-                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5m0 0l-5-5m5 5H9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span>Déconnexion</span>
             </button>
@@ -255,312 +161,155 @@ const AdminTasks = () => {
         </div>
       </header>
 
-      {/* Contenu */}
+      {/* ── Contenu ── */}
       <main className="content">
         <div className="content-wrapper">
-          {alert && (
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
-          )}
 
-          {/* Bouton retour */}
           <button className="btn-back" onClick={() => navigate('/admin/dashboard')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            Retour au tableau de bord
+            Retour au dashboard
           </button>
 
-          {/* Header de la page */}
-          <div className="page-header-tasks">
+          <div className="page-header">
             <div className="page-header-content">
-              <h1 className="page-title">Supervision Globale des Tâches</h1>
-              <p className="page-subtitle">
-                Vue d'ensemble de toutes les tâches de tous les projets
-              </p>
+              <h1 className="page-title">Supervision des tâches</h1>
+              <p className="page-subtitle">Vue globale de toutes les tâches de la plateforme</p>
             </div>
           </div>
 
-          {/* Statistiques */}
-          <div className="stats-grid-admin">
-            <div className="stat-card-admin stat-total">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 11l3 3L22 4" strokeWidth="2"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeWidth="2"/>
-                </svg>
+          {/* Stats */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4" strokeWidth="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.total}</div>
-                <div className="stat-label-admin">Tâches totales</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.total}</div><div className="stat-label">Tâches totales</div></div>
             </div>
-
-            <div className="stat-card-admin stat-todo">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                </svg>
+            <div className="stat-card">
+              <div className="stat-icon orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth="2"/><polyline points="12 6 12 12 16 14" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.todo}</div>
-                <div className="stat-label-admin">À faire</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.inProgress}</div><div className="stat-label">En cours</div></div>
             </div>
-
-            <div className="stat-card-admin stat-progress">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" strokeWidth="2"/>
-                </svg>
+            <div className="stat-card">
+              <div className="stat-icon purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.inProgress}</div>
-                <div className="stat-label-admin">En cours</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.pendingApproval}</div><div className="stat-label">En attente</div></div>
             </div>
-
-            <div className="stat-card-admin stat-review">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeWidth="2"/>
-                  <circle cx="12" cy="12" r="3" strokeWidth="2"/>
-                </svg>
+            <div className="stat-card">
+              <div className="stat-icon green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeWidth="2"/><polyline points="22 4 12 14.01 9 11.01" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.review}</div>
-                <div className="stat-label-admin">En révision</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.done}</div><div className="stat-label">Terminées</div></div>
             </div>
-
-            <div className="stat-card-admin stat-pending">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                  <polyline points="12 6 12 12 16 14" strokeWidth="2"/>
-                </svg>
+            <div className="stat-card">
+              <div className="stat-icon amber">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth="2"/><line x1="12" y1="8" x2="12" y2="12" strokeWidth="2"/><line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.pendingApproval}</div>
-                <div className="stat-label-admin">En attente</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.overdue}</div><div className="stat-label">En retard</div></div>
             </div>
-
-            <div className="stat-card-admin stat-done">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeWidth="2"/>
-                  <polyline points="22 4 12 14.01 9 11.01" strokeWidth="2"/>
-                </svg>
+            <div className="stat-card">
+              <div className="stat-icon red">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" strokeWidth="2"/><line x1="12" y1="9" x2="12" y2="13" strokeWidth="2"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2"/></svg>
               </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.done}</div>
-                <div className="stat-label-admin">Terminées</div>
-              </div>
-            </div>
-
-            <div className="stat-card-admin stat-unassigned">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
-                  <circle cx="12" cy="7" r="4" strokeWidth="2"/>
-                  <line x1="18" y1="8" x2="23" y2="13" strokeWidth="2"/>
-                  <line x1="23" y1="8" x2="18" y2="13" strokeWidth="2"/>
-                </svg>
-              </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.unassigned}</div>
-                <div className="stat-label-admin">Non assignées</div>
-              </div>
-            </div>
-
-            <div className="stat-card-admin stat-overdue">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                  <line x1="12" y1="8" x2="12" y2="12" strokeWidth="2"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2"/>
-                </svg>
-              </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.overdue}</div>
-                <div className="stat-label-admin">En retard</div>
-              </div>
-            </div>
-
-            <div className="stat-card-admin stat-high-priority">
-              <div className="stat-icon-admin">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                  <line x1="12" y1="16" x2="12" y2="12" strokeWidth="2"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8" strokeWidth="2"/>
-                </svg>
-              </div>
-              <div className="stat-content-admin">
-                <div className="stat-value-admin">{stats.highPriority}</div>
-                <div className="stat-label-admin">Priorité élevée</div>
-              </div>
+              <div className="stat-content"><div className="stat-value">{stats.highPriority}</div><div className="stat-label">Haute priorité</div></div>
             </div>
           </div>
 
           {/* Filtres */}
           <div className="filters-section">
-            <div className="filters-row">
-              <div className="search-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8" strokeWidth="2"/>
-                  <path d="m21 21-4.35-4.35" strokeWidth="2"/>
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Rechercher une tâche..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label>Statut</label>
+                <select value={filters.status} onChange={e => handleFilterChange('status', e.target.value)}>
+                  <option value="">Tous les statuts</option>
+                  <option value="todo">À faire</option>
+                  <option value="in_progress">En cours</option>
+                  <option value="review">En revue</option>
+                  <option value="pending_approval">En attente</option>
+                  <option value="done">Terminé</option>
+                  <option value="cancelled">Annulé</option>
+                </select>
               </div>
-
-              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                <option value="all">Tous les statuts</option>
-                <option value="todo">À faire</option>
-                <option value="in_progress">En cours</option>
-                <option value="review">En révision</option>
-                <option value="pending_approval">En attente</option>
-                <option value="done">Terminées</option>
-                <option value="cancelled">Annulées</option>
-              </select>
-
-              <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
-                <option value="all">Toutes priorités</option>
-                <option value="urgent">Urgent</option>
-                <option value="high">Haute</option>
-                <option value="medium">Moyenne</option>
-                <option value="low">Basse</option>
-              </select>
-
-              <select value={filterProject} onChange={(e) => setFilterProject(e.target.value)}>
-                <option value="all">Tous les projets</option>
-                {projects.map(project => (
-                  <option key={project.id} value={project.id}>
-                    {project.title}
-                  </option>
-                ))}
-              </select>
-
-              <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
-                <option value="all">Tous les membres</option>
-                <option value="unassigned">Non assignées</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>
-                    {u.firstName} {u.lastName}
-                  </option>
-                ))}
-              </select>
-
-              {hasActiveFilters && (
-                <button className="btn-reset-all" onClick={handleResetFilters}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="18" y1="6" x2="6" y2="18" strokeWidth="2"/>
-                    <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2"/>
-                  </svg>
-                  Réinitialiser
-                </button>
-              )}
+              <div className="filter-group">
+                <label>Priorité</label>
+                <select value={filters.priority} onChange={e => handleFilterChange('priority', e.target.value)}>
+                  <option value="">Toutes les priorités</option>
+                  <option value="low">Basse</option>
+                  <option value="medium">Moyenne</option>
+                  <option value="high">Haute</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Recherche</label>
+                <input type="text" placeholder="Rechercher une tâche..." value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
+              </div>
+              <button className="btn-reset-filters" onClick={resetFilters}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10" strokeWidth="2"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" strokeWidth="2"/></svg>
+                Réinitialiser
+              </button>
             </div>
           </div>
 
-          {/* Liste des tâches */}
-          <div className="tasks-container-admin">
+          {/* Tableau */}
+          <div className="tasks-section">
+            <h2 className="section-title">Tâches ({tasks.length})</h2>
             {tasks.length === 0 ? (
-              <div className="empty-tasks-admin">
-                <div className="empty-icon-admin">🔍</div>
-                <h3>Aucune tâche trouvée</h3>
-                <p>
-                  {hasActiveFilters
-                    ? 'Aucune tâche ne correspond aux filtres sélectionnés'
-                    : 'Aucune tâche n\'existe actuellement'}
-                </p>
+              <div className="empty-state">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4" strokeWidth="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeWidth="2"/></svg>
+                <p>Aucune tâche trouvée</p>
               </div>
             ) : (
-              <div className="tasks-table-admin">
-                {tasks.map(task => {
-                  const taskStatus = getStatusInfo(task.status);
-                  const taskPriority = getPriorityInfo(task.priority);
-                  const overdueTask = isOverdue(task.dueDate, task.status);
-
-                  return (
-                    <div 
-                      key={task.id} 
-                      className={`task-row-admin ${overdueTask ? 'task-row-overdue' : ''}`}
-                      onClick={() => navigate(`/admin/projects/${task.project.id}`)}
-                    >
-                      <div 
-                        className="task-project-dot"
-                        style={{ backgroundColor: task.project?.color || '#6B7785' }}
-                      ></div>
-
-                      <div className="task-info-admin">
-                        <h4 className="task-title-admin">{task.title}</h4>
-                        <div className="task-meta-admin">
-                          <span className="task-project-name">{task.project?.title}</span>
-                          <span className="task-separator">•</span>
-                          {task.assignee ? (
-                            <span className="task-assignee-name">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
-                                <circle cx="12" cy="7" r="4" strokeWidth="2"/>
-                              </svg>
-                              {task.assignee.firstName} {task.assignee.lastName}
-                            </span>
-                          ) : (
-                            <span className="task-unassigned-admin">Non assignée</span>
-                          )}
-                          {task.dueDate && (
-                            <>
-                              <span className="task-separator">•</span>
-                              <span className={`task-date-admin ${overdueTask ? 'task-date-overdue' : ''}`}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                  <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-                                  <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
-                                </svg>
-                                {formatDate(task.dueDate)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="task-progress-wrapper-admin">
-                          <div className="task-progress-bar-admin">
-                            <div 
-                              className="task-progress-fill-admin"
-                              style={{ 
-                                width: `${task.progress}%`,
-                                background: task.project?.color || '#FF6B35'
-                              }}
-                            ></div>
+              <div className="tasks-table">
+                <table>
+                  <thead>
+                    <tr><th>Tâche</th><th>Projet</th><th>Assigné à</th><th>Statut</th><th>Priorité</th><th>Échéance</th></tr>
+                  </thead>
+                  <tbody>
+                    {tasks.map(task => (
+                      <tr key={task.id}>
+                        <td>
+                          <div className="task-title">{task.title}</div>
+                          {task.description && <div className="task-description">{task.description}</div>}
+                        </td>
+                        <td>
+                          <div className="project-cell">
+                            <div className="project-color" style={{ background: task.project?.color }} />
+                            <span>{task.project?.title}</span>
                           </div>
-                          <span className="task-progress-text-admin">{task.progress}%</span>
-                        </div>
-                      </div>
-
-                      <div className="task-badges-admin">
-                        <span className={`task-badge ${taskStatus.class}`}>
-                          <span className="badge-icon">{taskStatus.icon}</span>
-                          {taskStatus.label}
-                        </span>
-                        <span className={`task-badge ${taskPriority.class}`}>
-                          <span className="badge-icon">{taskPriority.icon}</span>
-                          {taskPriority.label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                        </td>
+                        <td>
+                          {task.assignee ? (
+                            <div className="assignee-cell">
+                              <div className="assignee-avatar">
+                                {task.assignee.avatarUrl
+                                  ? <img src={`http://localhost:5000${task.assignee.avatarUrl}`} alt="" className="avatar-img" />
+                                  : <span>{task.assignee.firstName?.charAt(0)}{task.assignee.lastName?.charAt(0)}</span>}
+                              </div>
+                              <span>{task.assignee.firstName} {task.assignee.lastName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted">Non assigné</span>
+                          )}
+                        </td>
+                        <td><span className={`badge ${getStatusBadgeClass(task.status)}`}>{getStatusLabel(task.status)}</span></td>
+                        <td><span className={`badge ${getPriorityBadgeClass(task.priority)}`}>{getPriorityLabel(task.priority)}</span></td>
+                        <td>
+                          <span className={task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done' ? 'text-danger' : ''}>
+                            {formatDate(task.dueDate)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
+
         </div>
       </main>
     </div>

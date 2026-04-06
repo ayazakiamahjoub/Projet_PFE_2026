@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ThemeToggle from '../components/common/ThemeToggle';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -30,36 +31,37 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
 
-      // Fetch user stats
+      // 1. Stats utilisateurs
       const usersStatsResponse = await fetch('http://localhost:5000/api/users/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const usersStatsData = await usersStatsResponse.json();
 
-      // Fetch project stats
+      // 2. Stats projets
       const projectsStatsResponse = await fetch('http://localhost:5000/api/projects/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const projectsStatsData = await projectsStatsResponse.json();
 
-      // Fetch task stats (pour admin)
-      const tasksStatsResponse = await fetch('http://localhost:5000/api/tasks/stats', {
+      // 3. Tâches - récupérer toutes les tâches pour compter
+      const tasksResponse = await fetch('http://localhost:5000/api/tasks/all?limit=1000', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const tasksStatsData = await tasksStatsResponse.json();
+      const tasksData = await tasksResponse.json();
 
-      // Fetch recent users
+      // 4. Utilisateurs récents
       const recentUsersResponse = await fetch('http://localhost:5000/api/users?limit=5', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const recentUsersData = await recentUsersResponse.json();
 
-      // Fetch recent projects
+      // 5. Projets récents
       const recentProjectsResponse = await fetch('http://localhost:5000/api/projects?limit=5', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const recentProjectsData = await recentProjectsResponse.json();
 
+      // Mise à jour des stats utilisateurs
       if (usersStatsData.success) {
         setStats(prev => ({
           ...prev,
@@ -68,6 +70,7 @@ const Dashboard = () => {
         }));
       }
 
+      // Mise à jour des stats projets
       if (projectsStatsData.success) {
         setStats(prev => ({
           ...prev,
@@ -77,19 +80,21 @@ const Dashboard = () => {
         }));
       }
 
-      // Récupérer les stats des tâches
-      if (tasksStatsData.success) {
+      // Mise à jour du nombre total de tâches
+      if (tasksData.success) {
+        const totalTasksCount = tasksData.data.tasks?.length || 0;
         setStats(prev => ({
           ...prev,
-          totalTasks: tasksStatsData.data.stats.total || 0,
-          pendingApprovalTasks: tasksStatsData.data.stats.pendingApproval || 0
+          totalTasks: totalTasksCount
         }));
       }
 
+      // Mise à jour des utilisateurs récents
       if (recentUsersData.success) {
         setRecentUsers(recentUsersData.data.users);
       }
 
+      // Mise à jour des projets récents
       if (recentProjectsData.success) {
         setRecentProjects(recentProjectsData.data.projects);
       }
@@ -116,13 +121,13 @@ const Dashboard = () => {
 
   const getStatusInfo = (status) => {
     const statusMap = {
-      'active': { label: 'En cours', class: 'status-active', icon: '🔄' },
-      'completed': { label: 'Terminé', class: 'status-completed', icon: '✅' },
-      'on_hold': { label: 'En pause', class: 'status-hold', icon: '⏸️' },
-      'draft': { label: 'Brouillon', class: 'status-draft', icon: '📝' },
-      'cancelled': { label: 'Annulé', class: 'status-cancelled', icon: '❌' }
+      'active':    { label: 'En cours',   class: 'status-active' },
+      'completed': { label: 'Terminé',    class: 'status-completed' },
+      'on_hold':   { label: 'En pause',   class: 'status-hold' },
+      'draft':     { label: 'Brouillon',  class: 'status-draft' },
+      'cancelled': { label: 'Annulé',     class: 'status-cancelled' }
     };
-    return statusMap[status] || { label: status, class: 'status-default', icon: '❓' };
+    return statusMap[status] || { label: status, class: 'status-default' };
   };
 
   const getRoleBadge = (role) => {
@@ -152,7 +157,6 @@ const Dashboard = () => {
             </div>
           </div>
         </header>
-
         <main className="content">
           <div className="content-wrapper">
             <div className="loading-container">
@@ -200,7 +204,7 @@ const Dashboard = () => {
                 <span className="profile-role">{user?.role}</span>
               </div>
             </div>
-
+            <ThemeToggle />
             <button className="btn-logout" onClick={handleLogout}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5m0 0l-5-5m5 5H9" 
@@ -251,7 +255,13 @@ const Dashboard = () => {
               className="quick-stat-item clickable"
               onClick={() => navigate('/admin/users')}
             >
-              <div className="quick-stat-icon blue">👥</div>
+              <div className="quick-stat-icon blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="2"/>
+                  <circle cx="9" cy="7" r="4" strokeWidth="2"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="2"/>
+                </svg>
+              </div>
               <div className="quick-stat-content">
                 <div className="quick-stat-value">{stats.totalUsers}</div>
                 <div className="quick-stat-label">Utilisateurs</div>
@@ -262,7 +272,11 @@ const Dashboard = () => {
               className="quick-stat-item clickable"
               onClick={() => navigate('/admin/projects')}
             >
-              <div className="quick-stat-icon orange">📁</div>
+              <div className="quick-stat-icon orange">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" strokeWidth="2"/>
+                </svg>
+              </div>
               <div className="quick-stat-content">
                 <div className="quick-stat-value">{stats.totalProjects}</div>
                 <div className="quick-stat-label">Projets</div>
@@ -270,7 +284,13 @@ const Dashboard = () => {
             </div>
             
             <div className="quick-stat-item">
-              <div className="quick-stat-icon blue">🔄</div>
+              <div className="quick-stat-icon blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="23 4 23 10 17 10" strokeWidth="2"/>
+                  <polyline points="1 20 1 14 7 14" strokeWidth="2"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" strokeWidth="2"/>
+                </svg>
+              </div>
               <div className="quick-stat-content">
                 <div className="quick-stat-value">{stats.activeProjects}</div>
                 <div className="quick-stat-label">Projets actifs</div>
@@ -278,18 +298,29 @@ const Dashboard = () => {
             </div>
             
             <div className="quick-stat-item">
-              <div className="quick-stat-icon green">✅</div>
+              <div className="quick-stat-icon green">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeWidth="2"/>
+                  <polyline points="22 4 12 14.01 9 11.01" strokeWidth="2"/>
+                </svg>
+              </div>
               <div className="quick-stat-content">
                 <div className="quick-stat-value">{stats.completedProjects}</div>
                 <div className="quick-stat-label">Projets terminés</div>
               </div>
             </div>
             
+            {/* Carte Tâches totales - corrigée pour afficher le bon nombre */}
             <div 
               className="quick-stat-item clickable"
               onClick={() => navigate('/admin/tasks')}
             >
-              <div className="quick-stat-icon purple">📋</div>
+              <div className="quick-stat-icon purple">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 11l3 3L22 4" strokeWidth="2"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeWidth="2"/>
+                </svg>
+              </div>
               <div className="quick-stat-content">
                 <div className="quick-stat-value">{stats.totalTasks}</div>
                 <div className="quick-stat-label">Tâches totales</div>
@@ -321,25 +352,25 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="users-list-admin">
-                    {recentUsers.map(user => {
-                      const roleInfo = getRoleBadge(user.role);
+                    {recentUsers.map(userItem => {
+                      const roleInfo = getRoleBadge(userItem.role);
                       return (
-                        <div key={user.id} className="user-item-admin">
+                        <div key={userItem.id} className="user-item-admin">
                           <div className="user-avatar-small">
-                            {user.avatarUrl ? (
+                            {userItem.avatarUrl ? (
                               <img 
-                                src={`http://localhost:5000${user.avatarUrl}`} 
-                                alt={`${user.firstName} ${user.lastName}`}
+                                src={`http://localhost:5000${userItem.avatarUrl}`} 
+                                alt={`${userItem.firstName} ${userItem.lastName}`}
                               />
                             ) : (
-                              <span>{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</span>
+                              <span>{userItem.firstName?.charAt(0)}{userItem.lastName?.charAt(0)}</span>
                             )}
                           </div>
                           <div className="user-info-admin">
                             <div className="user-name-admin">
-                              {user.firstName} {user.lastName}
+                              {userItem.firstName} {userItem.lastName}
                             </div>
-                            <div className="user-email-admin">{user.email}</div>
+                            <div className="user-email-admin">{userItem.email}</div>
                           </div>
                           <span className={`role-badge ${roleInfo.class}`}>
                             {roleInfo.label}
@@ -390,16 +421,23 @@ const Dashboard = () => {
                             <div className="project-name-admin">{project.title}</div>
                             <div className="project-meta-admin">
                               <span className="project-manager">
-                                👤 {project.manager?.firstName} {project.manager?.lastName}
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
+                                  <circle cx="12" cy="7" r="4" strokeWidth="2"/>
+                                </svg>
+                                {project.manager?.firstName} {project.manager?.lastName}
                               </span>
                               <span className="project-date">
-                                📅 {formatDate(project.createdAt)}
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                                  <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
+                                </svg>
+                                {formatDate(project.createdAt)}
                               </span>
                             </div>
                           </div>
                           <div className="project-status-admin">
                             <span className={`status-badge ${statusInfo.class}`}>
-                              <span className="status-icon">{statusInfo.icon}</span>
                               {statusInfo.label}
                             </span>
                             <div className="project-progress-small">

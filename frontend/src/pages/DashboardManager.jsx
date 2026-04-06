@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Alert from '../components/common/Alert';
+import ThemeToggle from '../components/common/ThemeToggle';
 import './DashboardManager.css';
 
 const DashboardManager = () => {
@@ -29,7 +30,6 @@ const DashboardManager = () => {
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [savingMeeting, setSavingMeeting] = useState(false);
   const [members, setMembers] = useState([]);
-  const [editingMeeting, setEditingMeeting] = useState(null); // null = création, objet = édition
   const [meetingForm, setMeetingForm] = useState({
     title: '',
     date: '',
@@ -161,60 +161,6 @@ const DashboardManager = () => {
         setTimeout(() => setAlert(null), 3000);
       } else {
         setAlert({ type: 'error', message: data.message || 'Erreur lors de la création' });
-      }
-    } catch {
-      setAlert({ type: 'error', message: 'Erreur de connexion au serveur' });
-    } finally {
-      setSavingMeeting(false);
-    }
-  };
-
-  const handleEditMeeting = (meeting) => {
-    setEditingMeeting(meeting);
-    const dt = new Date(meeting.scheduledAt);
-    setMeetingForm({
-      title:        meeting.title,
-      date:         dt.toISOString().split('T')[0],
-      time:         dt.toTimeString().slice(0, 5),
-      duration:     String(meeting.duration),
-      description:  meeting.description || '',
-      meetLink:     meeting.meetLink || '',
-      participants: meeting.participants?.map(p => p.id) || []
-    });
-    setShowMeetingModal(true);
-  };
-
-  const handleUpdateMeeting = async (e) => {
-    e.preventDefault();
-    if (!meetingForm.title || !meetingForm.date || !meetingForm.time) {
-      setAlert({ type: 'error', message: 'Le titre, la date et l heure sont obligatoires' });
-      return;
-    }
-    setSavingMeeting(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/meetings/${editingMeeting.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          title:       meetingForm.title.trim(),
-          scheduledAt: `${meetingForm.date}T${meetingForm.time}`,
-          duration:    parseInt(meetingForm.duration),
-          description: meetingForm.description.trim() || null,
-          meetLink:    meetingForm.meetLink.trim() || null,
-          participants: meetingForm.participants
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAlert({ type: 'success', message: '✅ Réunion modifiée avec succès !' });
-        setShowMeetingModal(false);
-        setEditingMeeting(null);
-        setMeetingForm({ title: '', date: '', time: '', duration: '60', description: '', meetLink: '', participants: [] });
-        fetchMeetings();
-        setTimeout(() => setAlert(null), 3000);
-      } else {
-        setAlert({ type: 'error', message: data.message || 'Erreur lors de la modification' });
       }
     } catch {
       setAlert({ type: 'error', message: 'Erreur de connexion au serveur' });
@@ -372,28 +318,28 @@ const DashboardManager = () => {
   const stats = [
     { 
       label: 'Mes projets', 
-      value: projectStats.total.toString(), 
-      icon: '📁',
+      value: projectStats.total.toString(),
+      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" strokeWidth="2"/></svg>,
       trend: `${projectStats.active} en cours`
     },
     { 
       label: 'Tâches en attente', 
-      value: pendingApprovalTasks.length.toString(), 
-      icon: '⏳',
+      value: pendingApprovalTasks.length.toString(),
+      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth="2"/><polyline points="12 6 12 12 16 14" strokeWidth="2"/></svg>,
       trend: `à approuver`
     },
     { 
       label: 'Tâches terminées', 
-      value: projectStats.completed?.toString() || '0', 
-      icon: '✅',
+      value: projectStats.completed?.toString() || '0',
+      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeWidth="2"/><polyline points="22 4 12 14.01 9 11.01" strokeWidth="2"/></svg>,
       trend: 'ce mois'
     },
     { 
       label: 'Taux de complétion', 
       value: projectStats.total > 0 
         ? `${Math.round((projectStats.completed / projectStats.total) * 100)}%` 
-        : '0%', 
-      icon: '📈',
+        : '0%',
+      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10" strokeWidth="2"/><line x1="12" y1="20" x2="12" y2="4" strokeWidth="2"/><line x1="6" y1="20" x2="6" y2="14" strokeWidth="2"/></svg>,
       trend: '+5% ce mois'
     }
   ];
@@ -434,6 +380,7 @@ const DashboardManager = () => {
               </div>
             </div>
 
+            <ThemeToggle />
             <button className="btn-logout" onClick={handleLogout}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5m0 0l-5-5m5 5H9" 
@@ -471,7 +418,7 @@ const DashboardManager = () => {
             {stats.map((stat, index) => (
               <div key={index} className="stat-box">
                 <div className="stat-header">
-                  <span className="stat-emoji">{stat.icon}</span>
+                  <div className="stat-icon-svg">{stat.icon}</div>
                   <span className="stat-trend">{stat.trend}</span>
                 </div>
                 <div className="stat-body">
@@ -501,7 +448,7 @@ const DashboardManager = () => {
               </div>
             ) : pendingApprovalTasks.length === 0 ? (
               <div className="empty-approval">
-                <div className="empty-approval-icon">✅</div>
+                
                 <h3>Aucune tâche en attente</h3>
                 <p>Toutes les tâches sont approuvées ou en cours</p>
               </div>
@@ -636,7 +583,7 @@ const DashboardManager = () => {
               <div className="box-content">
                 {myProjects.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-icon">📁</div>
+                    
                     <h3>Aucun projet</h3>
                     <p>Créez votre premier projet pour commencer</p>
                     <button 
@@ -747,7 +694,7 @@ const DashboardManager = () => {
               <div className="box-content">
                 {meetings.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-icon">📅</div>
+                    
                     <h3>Aucune réunion planifiée</h3>
                     <p>Planifiez votre première réunion d'équipe</p>
                     <button className="btn-create-first" onClick={() => setShowMeetingModal(true)}>
@@ -804,14 +751,6 @@ const DashboardManager = () => {
                                 </svg>
                                 Rejoindre
                               </a>
-                            )}
-                            {!past && (
-                              <button className="btn-edit-meeting" onClick={(e) => { e.stopPropagation(); handleEditMeeting(meeting); }} title="Modifier">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeWidth="2"/>
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeWidth="2"/>
-                                </svg>
-                              </button>
                             )}
                             {past && <span className="meeting-past-label">Passée</span>}
                             <button className="btn-delete-meeting" onClick={(e) => { e.stopPropagation(); handleDeleteMeeting(meeting.id); }} title="Supprimer">
@@ -915,7 +854,7 @@ const DashboardManager = () => {
 
       {/* ── MODAL PLANIFICATION RÉUNION ── */}
       {showMeetingModal && (
-        <div className="modal-overlay" onClick={() => { if (!savingMeeting) { setShowMeetingModal(false); setEditingMeeting(null); setMeetingForm({ title: '', date: '', time: '', duration: '60', description: '', meetLink: '', participants: [] }); } }}>
+        <div className="modal-overlay" onClick={() => !savingMeeting && setShowMeetingModal(false)}>
           <div className="modal-content modal-meeting" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>
@@ -923,9 +862,9 @@ const DashboardManager = () => {
                   <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
                   <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
                 </svg>
-                {editingMeeting ? 'Modifier la réunion' : 'Planifier une réunion'}
+                Planifier une réunion
               </h2>
-              <button className="modal-close" onClick={() => { setShowMeetingModal(false); setEditingMeeting(null); setMeetingForm({ title: '', date: '', time: '', duration: '60', description: '', meetLink: '', participants: [] }); }} disabled={savingMeeting}>
+              <button className="modal-close" onClick={() => setShowMeetingModal(false)} disabled={savingMeeting}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <line x1="18" y1="6" x2="6" y2="18" strokeWidth="2"/>
                   <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2"/>
@@ -933,7 +872,7 @@ const DashboardManager = () => {
               </button>
             </div>
 
-            <form onSubmit={editingMeeting ? handleUpdateMeeting : handleCreateMeeting} className="meeting-form">
+            <form onSubmit={handleCreateMeeting} className="meeting-form">
               {/* Titre */}
               <div className="form-group">
                 <label htmlFor="meeting-title">Titre de la réunion *</label>
@@ -1064,7 +1003,7 @@ const DashboardManager = () => {
                   Annuler
                 </button>
                 <button type="submit" className="btn-modal-primary" disabled={savingMeeting}>
-                  {savingMeeting ? (editingMeeting ? 'Enregistrement...' : 'Planification...') : (editingMeeting ? 'Enregistrer les modifications' : 'Planifier la réunion')}
+                  {savingMeeting ? 'Planification...' : 'Planifier la réunion'}
                 </button>
               </div>
             </form>

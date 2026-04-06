@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ThemeToggle from '../components/common/ThemeToggle';
 import Alert from '../components/common/Alert';
 import './DashboardMember.css';
 
@@ -57,14 +58,9 @@ const DashboardMember = () => {
   const [draggingTask, setDraggingTask] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
 
-  // Réunions
-  const [meetings, setMeetings] = useState([]);
-
   useEffect(() => {
     fetchMyTasks();
   }, [filterStatus, filterPriority]);
-
-  useEffect(() => { fetchMyMeetings(); }, []);
 
   const fetchMyTasks = async () => {
     try {
@@ -99,35 +95,6 @@ const DashboardMember = () => {
       setLoading(false);
     }
   };
-
-  // ─── Réunions ─────────────────────────────────────────────────────────────
-  const fetchMyMeetings = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/meetings/my-meetings', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) setMeetings(data.data.meetings);
-    } catch (e) { console.error('Erreur chargement réunions:', e); }
-  };
-
-  const formatMeetingDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date(); today.setHours(0,0,0,0);
-    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-    const d = new Date(date); d.setHours(0,0,0,0);
-    const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    if (d.getTime() === today.getTime()) return `Aujourd'hui à ${timeStr}`;
-    if (d.getTime() === tomorrow.getTime()) return `Demain à ${timeStr}`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) + ` à ${timeStr}`;
-  };
-
-  const isMeetingPast = (dateString) => new Date(dateString) < new Date();
-
-  const upcomingMeetings = meetings
-    .filter(m => !isMeetingPast(m.scheduledAt))
-    .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
 
   // ─── Vérifie si la transition est autorisée ─────────────────────────────
   const canTransition = (fromStatus, toStatus) => {
@@ -471,6 +438,7 @@ const DashboardMember = () => {
               </div>
             </div>
 
+            <ThemeToggle />
             <button className="btn-logout" onClick={handleLogout}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5m0 0l-5-5m5 5H9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -620,97 +588,6 @@ const DashboardMember = () => {
             </div>
           </div>
         </div>
-
-          {/* ── Réunions à venir ── */}
-          <div className="box-white member-meetings-box">
-            <div className="box-header">
-              <h2 className="box-title">
-                Mes réunions à venir
-                {upcomingMeetings.length > 0 && (
-                  <span className="member-meeting-badge">{upcomingMeetings.length}</span>
-                )}
-              </h2>
-            </div>
-            <div className="box-body">
-              {upcomingMeetings.length === 0 ? (
-                <div className="empty-tasks">
-                  <div className="empty-tasks-icon">📅</div>
-                  <h3>Aucune réunion à venir</h3>
-                  <p>Votre manager n'a pas encore planifié de réunion</p>
-                </div>
-              ) : (
-                <div className="member-meetings-list">
-                  {upcomingMeetings.map(meeting => (
-                    <div key={meeting.id} className={`member-meeting-card ${meeting.meetLink ? "member-meeting-card-clickable" : ""}`} onClick={() => meeting.meetLink && window.open(meeting.meetLink, "_blank", "noopener,noreferrer")} style={{ cursor: meeting.meetLink ? "pointer" : "default" }}>
-                      {/* Bloc date */}
-                      <div className="member-meeting-date-col">
-                        <div className="member-meeting-day">
-                          {new Date(meeting.scheduledAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
-                        </div>
-                        <div className="member-meeting-time">
-                          {new Date(meeting.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-
-                      {/* Infos */}
-                      <div className="member-meeting-info">
-                        <h4 className="member-meeting-title">{meeting.title}</h4>
-                        {meeting.description && (
-                          <p className="member-meeting-desc">{meeting.description}</p>
-                        )}
-                        <div className="member-meeting-meta">
-                          <span className="member-meeting-duration">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                              <polyline points="12 6 12 12 16 14" strokeWidth="2"/>
-                            </svg>
-                            {meeting.duration} min
-                          </span>
-                          {meeting.creator && (
-                            <span className="member-meeting-organizer">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeWidth="2"/>
-                                <circle cx="12" cy="7" r="4" strokeWidth="2"/>
-                              </svg>
-                              {meeting.creator.firstName} {meeting.creator.lastName}
-                            </span>
-                          )}
-                          {meeting.participants?.length > 0 && (
-                            <span className="member-meeting-participants-count">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="2"/>
-                                <circle cx="9" cy="7" r="4" strokeWidth="2"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="2"/>
-                              </svg>
-                              {meeting.participants.length} participant{meeting.participants.length > 1 ? 's' : ''}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Bouton rejoindre */}
-                      {meeting.meetLink && (
-                        <a
-                          href={meeting.meetLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="member-btn-join"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polygon points="23 7 16 12 23 17 23 7" strokeWidth="2"/>
-                            <rect x="1" y="5" width="15" height="14" rx="2" strokeWidth="2"/>
-                          </svg>
-                          Rejoindre
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-       
       </main>
 
       {/* ── MODAL COMMENTAIRE / APPROBATION ── */}

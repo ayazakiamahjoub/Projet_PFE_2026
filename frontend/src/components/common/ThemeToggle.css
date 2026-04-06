@@ -1,0 +1,69 @@
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.theme-toggle:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.theme-icon {
+  color: var(--color-text);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+  color: var(--color-primary);
+}
+
+.theme-icon.moon {
+  animation: moonRise 0.3s ease;
+}
+
+.theme-icon.sun {
+  animation: sunRise 0.3s ease;
+}
+
+@keyframes moonRise {
+  0% {
+    transform: translateY(20px) rotate(-90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes sunRise {
+  0% {
+    transform: translateY(-20px) rotate(90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+  }
+}
